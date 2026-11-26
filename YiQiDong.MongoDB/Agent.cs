@@ -60,12 +60,13 @@ namespace YiQiDong.MongoDB
             //检查复制配置文件
             FileSystemUtils.CopyFile(Path.Combine(imageFolder, "mongod.conf"), dataFolder);
 
+            var inited = true;
+            var dbDataFolder = Path.Combine(dataFolder, "data");
             //检查数据库目录是否初始化，如果不存在，则初始化
-            if (!Directory.Exists(Path.Combine(dataFolder, "data")))
+            if (!Directory.Exists(dbDataFolder))
             {
-                AgentContext.LogInfo("正在初始化数据库...");
-                Directory.CreateDirectory(Path.Combine(dataFolder, "data"));
-                AgentContext.LogInfo("初始化数据库时成功。");
+                inited = false;
+                Directory.CreateDirectory(dbDataFolder);
             }
             Process = Process.Start(DbUtils.GetPsi(imageFolder, dataFolder));
             AgentContext.LogInfo("数据库监听端口：" + Config.Instance.GetConnectPort());
@@ -94,6 +95,11 @@ namespace YiQiDong.MongoDB
             if (Process.HasExited)
                 return;
             AgentContext.LogInfo("[数据库服务启动完成]");
+            if (!inited)
+            {
+                var password = DbUtils.CreateRootUser(Config.Instance.GetConnectHost(), Config.Instance.GetConnectPort());
+                AgentContext.LogInfo($"root用户创建完成, 密码: {password}");
+            }
         }
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -158,8 +164,11 @@ namespace YiQiDong.MongoDB
             //发送关闭命令，最多等待30秒
             try
             {
+                process.Kill();
+                /*
                 DbUtils.ShutdownDb(Config.Instance.GetConnectHost(), Config.Instance.GetConnectPort())
                     .Wait(30 * 1000);
+                    */
             }
             catch (Exception ex)
             {

@@ -83,7 +83,7 @@ namespace YiQiDong.MongoDB.Functions
             if (Properties == null)
                 throw new ApplicationException($"配置文件[{CONFIG_FILE}]不存在！");
 
-            var ret = Properties["bind-address"];
+            var ret = Properties["bindIp"];
             if (ret == "0.0.0.0")
                 ret = "127.0.0.1";
             return ret;

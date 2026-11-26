@@ -1,8 +1,5 @@
 ﻿using Quick.Shell.Utils;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System;
 using YiQiDong.Agent;
 using System.Runtime.InteropServices;
 using MongoDB.Bson;
@@ -12,33 +9,6 @@ namespace YiQiDong.MongoDB.Utils;
 
 public class DbUtils
 {
-    /*
-    public static void Init(string imageFolder)
-    {
-        //Linux系统上添加LD_LIBRARY_PATH环境变量
-        if (OperatingSystem.IsLinux())
-        {
-            var mysqlLibDir = Path.Combine(imageFolder, "lib");
-            //添加PATH环境变量
-            var path = Environment.GetEnvironmentVariable("LD_LIBRARY_PATH");
-            if (string.IsNullOrEmpty(path))
-                path = mysqlLibDir;
-            else
-                path = $"{path}:{mysqlLibDir}";
-            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", path);
-        }
-    }
-
-    private static bool IsRunAsRoot()
-    {
-        AgentContext.LogInfo("正在检查当前用户...");
-        var tmpPsi = new ProcessStartInfo("whoami");
-        tmpPsi.RedirectStandardOutput = true;
-        var tmpProcess = Process.Start(tmpPsi);
-        var account = tmpProcess.StandardOutput.ReadToEnd();
-        return account.Trim() == "root";
-    }
-*/
     private static void outputNotSupportOsAndArchitecture()
     {
         AgentContext.LogWarn($"不支持的操作系统[{RuntimeInformation.OSDescription}]+平台架构[{RuntimeInformation.OSArchitecture}]。");
@@ -74,6 +44,35 @@ public class DbUtils
         ProcessUtils.ProcessProcessStartInfo(psi);
         psi.WorkingDirectory = dataFolder;
         return psi;
+    }
+
+    public static string CreateRootUser(string host, int port)
+    {
+        var connectionString = $"mongodb://{host}:{port}/admin?directConnection=true";
+        var client = new MongoClient(connectionString);
+        var adminDb = client.GetDatabase("admin");
+        var pwd = Guid.NewGuid().ToString("N");
+        var command = new BsonDocument
+        {
+            { "createUser", "root" },
+            { "pwd", pwd },
+            {
+                "roles", new BsonArray
+                {
+                    new BsonDocument { { "role", "root" }, { "db", "admin" } }
+                }
+            }
+        };
+
+        try
+        {
+            var result = adminDb.RunCommand<BsonDocument>(command);
+            return pwd;
+        }
+        catch (MongoCommandException ex)
+        {
+            throw new IOException($"创建失败 (code={ex.Code}, {ex.CodeName}): {ex.Message}");
+        }
     }
 
     public static async Task ShutdownDb(string host, int port)
