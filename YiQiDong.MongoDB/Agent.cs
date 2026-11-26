@@ -100,7 +100,12 @@ namespace YiQiDong.MongoDB
         {
             if (e.Data == null)
                 return;
+            var line = e.Data;
             AgentContext.LogInfo(e.Data);
+            //{"t":{"$date":"2026-11-26T10:23:33.007+08:00"},"s":"I",  "c":"CONTROL",  "id":8423403, "ctx":"initandlisten","msg":"mongod startup complete","attr":{"Summary of time elapsed":{"Startup from clean shutdown?":true,"Statistics":{"createLockFileMillis":0,"setUpPeriodicRunnerMillis":0,"setUpOCSPMillis":0,"setUpTransportLayerMillis":0,"initSyncCrashRecoveryMillis":0,"getStorageEngineMetadataMillis":0,"validateMetadataMillis":0,"createStorageEngineMillis":194,"initializeFCVForIndexMillis":0,"dropAbandonedIdentsMillis":0,"standaloneClusterParamsMillis":0,"userAndRolesGraphMillis":0,"waitForMajorityServiceMillis":0,"startUpReplCoordMillis":1,"recoverChangeStreamMillis":0,"logStartupOptionsMillis":0,"startUpTransportLayerMillis":0,"initAndListenTotalMillis":295}}}}
+            //判断数据库服务启动完成
+            if (!DbServiceStarted)
+                DbServiceStarted = serveiceStartLogKeys.Any(t => t.All(u => line.Contains(u)));
         }
 
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
