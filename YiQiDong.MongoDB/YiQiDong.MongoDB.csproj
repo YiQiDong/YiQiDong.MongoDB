@@ -9,6 +9,11 @@
 		<PublishSelfContained>true</PublishSelfContained>
 		<PublishSingleFile>true</PublishSingleFile>
 	</PropertyGroup>
+	
+	<ItemGroup>
+		<TrimmerRootAssembly Include="MongoDB.Bson" />
+		<TrimmerRootAssembly Include="MongoDB.Driver" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="YiQiDong.Core" Version="2026.11.2" />

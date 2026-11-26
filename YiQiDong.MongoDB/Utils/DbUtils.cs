@@ -49,23 +49,22 @@ public class DbUtils
     public static string CreateRootUser(string host, int port)
     {
         var connectionString = $"mongodb://{host}:{port}/admin?directConnection=true";
-        var client = new MongoClient(connectionString);
-        var adminDb = client.GetDatabase("admin");
-        var pwd = Guid.NewGuid().ToString("N");
-        var command = new BsonDocument
-        {
-            { "createUser", "root" },
-            { "pwd", pwd },
-            {
-                "roles", new BsonArray
-                {
-                    new BsonDocument { { "role", "root" }, { "db", "admin" } }
-                }
-            }
-        };
-
         try
         {
+            var client = new MongoClient(connectionString);
+            var adminDb = client.GetDatabase("admin");
+            var pwd = Guid.NewGuid().ToString("N");
+            var command = new BsonDocument
+            {
+                { "createUser", "root" },
+                { "pwd", pwd },
+                {
+                    "roles", new BsonArray
+                    {
+                        new BsonDocument { { "role", "root" }, { "db", "admin" } }
+                    }
+                }
+            };
             var result = adminDb.RunCommand<BsonDocument>(command);
             return pwd;
         }
