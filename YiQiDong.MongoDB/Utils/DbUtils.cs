@@ -48,25 +48,27 @@ public class DbUtils
 
     public static string CreateRootUser(string host, int port)
     {
-        var connectionString = $"mongodb://{host}:{port}/admin?directConnection=true";
+        var connectionString = $"mongodb://{host}:{port}";
         try
         {
-            var client = new MongoClient(connectionString);
-            var adminDb = client.GetDatabase("admin");
-            var pwd = Guid.NewGuid().ToString("N");
-            var command = new BsonDocument
+            using (var client = new MongoClient(connectionString))
             {
-                { "createUser", "root" },
-                { "pwd", pwd },
+                var adminDb = client.GetDatabase("admin");
+                var pwd = Guid.NewGuid().ToString("N");
+                var command = new BsonDocument
                 {
-                    "roles", new BsonArray
+                    { "createUser", "root" },
+                    { "pwd", pwd },
                     {
-                        new BsonDocument { { "role", "root" }, { "db", "admin" } }
+                        "roles", new BsonArray
+                        {
+                            new BsonDocument { { "role", "root" }, { "db", "admin" } }
+                        }
                     }
-                }
-            };
-            var result = adminDb.RunCommand<BsonDocument>(command);
-            return pwd;
+                };
+                var result = adminDb.RunCommand<BsonDocument>(command);
+                return pwd;
+            }
         }
         catch (MongoCommandException ex)
         {
@@ -74,14 +76,34 @@ public class DbUtils
         }
     }
 
-    public static async Task ShutdownDb(string host, int port)
+    public static async Task ShutdownDb(string host, int port, string user, string password)
     {
         var connectionString = $"mongodb://{host}:{port}";
-        var client = new MongoClient(connectionString);
-        var adminDb = client.GetDatabase("admin");
-        await adminDb.RunCommandAsync<BsonDocument>(new BsonDocument
+        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        settings.Credential = MongoCredential.CreateCredential("admin", user, password);
+        using (var client = new MongoClient(settings))
+        {
+            var adminDb = client.GetDatabase("admin");
+            await adminDb.RunCommandAsync<BsonDocument>(new BsonDocument
         {
             {"shutdown", 1}
         });
+        }
+    }
+
+    public static void ModifyPassword(string host, int port, string user, string oldPassword, string newPassword)
+    {
+        var connectionString = $"mongodb://{host}:{port}";
+        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        settings.Credential = MongoCredential.CreateCredential("admin", user, oldPassword);
+        using (var client = new MongoClient(settings))
+        {
+            var adminDb = client.GetDatabase("admin");
+            adminDb.RunCommand<BsonDocument>(new BsonDocument
+        {
+            { "updateUser", user },
+            { "pwd", newPassword }
+        });
+        }
     }
 }

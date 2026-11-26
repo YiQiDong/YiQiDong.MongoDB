@@ -10,6 +10,7 @@ namespace YiQiDong.MongoDB.Functions
     class Config : AbstractFunction
     {
         public const string CONFIG_FILE = "mongod.conf";
+        public const string PASSWORD_FILE = "password.key";
         public const string DATA_FOLDER_CONFIG_FILE = "DataFolder.conf";
         public static Config Instance { get; private set; }
 
@@ -19,6 +20,7 @@ namespace YiQiDong.MongoDB.Functions
         public override string Name => "数据库配置";
         public Dictionary<string, string> Properties = null;
         public string ConfigFile { get; private set; }
+        public string PasswordFile { get; private set; }
 
         public Config() : this(AgentContext.Container.ImageFolder, AgentContext.Container.ContainerFolder) { }
 
@@ -54,6 +56,13 @@ namespace YiQiDong.MongoDB.Functions
             else
             {
                 AgentContext.LogWarn($"配置文件[{ConfigFile}]不存在！");
+            }
+            if (Properties == null)
+                Properties = new Dictionary<string, string>();
+            PasswordFile = Path.Combine(dataFolder, PASSWORD_FILE);
+            if (File.Exists(PasswordFile))
+            {
+                Properties["password"] = File.ReadAllText(PasswordFile);
             }
         }
 
@@ -95,6 +104,20 @@ namespace YiQiDong.MongoDB.Functions
                 throw new ApplicationException($"配置文件[{CONFIG_FILE}]不存在！");
 
             return int.Parse(Properties["port"]);
+        }
+        
+        public string GetPassword()
+        {
+            if (Properties == null)
+                throw new ApplicationException($"配置文件[{CONFIG_FILE}]不存在！");
+
+            return Properties["password"];
+        }
+
+        public void UpdatePassword(string password)
+        {
+            Properties["password"] = password;
+            File.WriteAllText(PasswordFile, password);
         }
 
         private List<FieldForGet> innerGet(FunctionRequest request, bool isReadOnly = false)

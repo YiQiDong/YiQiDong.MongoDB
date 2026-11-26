@@ -23,7 +23,6 @@ string URL_TEMPLATE_LINUX = "https://fastdl.mongodb.org/linux/mongodb-linux-{0}-
 Console.WriteLine("----------------------------------");
 Console.WriteLine("  欢迎使用MongoDB编译脚本");
 Console.WriteLine("----------------------------------");
-Version version;
 
 var httpClient = QbNet.GetHttpClient();
 
