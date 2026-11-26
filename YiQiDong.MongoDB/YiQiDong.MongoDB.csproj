@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>true</ImplicitUsings>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<PublishTrimmed>true</PublishTrimmed>
+		<PublishSelfContained>true</PublishSelfContained>
+		<PublishSingleFile>true</PublishSingleFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="YiQiDong.Core" Version="2026.11.2" />
+		<PackageReference Include="MongoDB.Driver" Version="3.14.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="mongod.conf">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>

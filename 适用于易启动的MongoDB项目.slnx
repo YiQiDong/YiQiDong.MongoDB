@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="YiQiDong.MongoDB/YiQiDong.MongoDB.csproj" />
+  <Project Path="_build/_build.csproj" />
+</Solution>
