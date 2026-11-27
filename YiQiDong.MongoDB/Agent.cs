@@ -176,10 +176,7 @@ namespace YiQiDong.MongoDB
                 DbUtils.ShutdownDb(Config.Instance.GetConnectHost(), Config.Instance.GetConnectPort(), "root", Config.Instance.GetPassword())
                     .Wait(30 * 1000);
             }
-            catch (Exception ex)
-            {
-                AgentContext.LogError(ExceptionUtils.GetExceptionMessage(ex));
-            }
+            catch { }
             process = Process;
             if (process == null
                 || process.HasExited)

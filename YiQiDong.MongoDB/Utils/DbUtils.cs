@@ -48,10 +48,13 @@ public class DbUtils
 
     public static string CreateRootUser(string host, int port)
     {
-        var connectionString = $"mongodb://{host}:{port}";
+        var settings = new MongoClientSettings()
+        {
+            Server = new MongoServerAddress(host,port)
+        };
         try
         {
-            using (var client = new MongoClient(connectionString))
+            using (var client = new MongoClient(settings))
             {
                 var adminDb = client.GetDatabase("admin");
                 var pwd = Guid.NewGuid().ToString("N");
@@ -78,24 +81,28 @@ public class DbUtils
 
     public static async Task ShutdownDb(string host, int port, string user, string password)
     {
-        var connectionString = $"mongodb://{host}:{port}";
-        var settings = MongoClientSettings.FromConnectionString(connectionString);
-        settings.Credential = MongoCredential.CreateCredential("admin", user, password);
+        var settings = new MongoClientSettings()
+        {
+            Server = new MongoServerAddress(host,port),
+            Credential = MongoCredential.CreateCredential("admin", user, password)
+        };
         using (var client = new MongoClient(settings))
         {
             var adminDb = client.GetDatabase("admin");
             await adminDb.RunCommandAsync<BsonDocument>(new BsonDocument
-        {
-            {"shutdown", 1}
-        });
+            {
+                {"shutdown", 1}
+            });
         }
     }
 
     public static void ModifyPassword(string host, int port, string user, string oldPassword, string newPassword)
     {
-        var connectionString = $"mongodb://{host}:{port}";
-        var settings = MongoClientSettings.FromConnectionString(connectionString);
-        settings.Credential = MongoCredential.CreateCredential("admin", user, oldPassword);
+        var settings = new MongoClientSettings()
+        {
+            Server = new MongoServerAddress(host,port),
+            Credential = MongoCredential.CreateCredential("admin", user, oldPassword)
+        };
         using (var client = new MongoClient(settings))
         {
             var adminDb = client.GetDatabase("admin");
